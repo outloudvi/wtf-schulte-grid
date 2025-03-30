@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wtf grid (remade)</title>
+  <style>
+    #app {
+      text-align: center;
+    }
+
+    #options {
+      margin-top: 5px;
+    }
+
+    #options input {
+      width: 50px;
+    }
+
+    #play {
+      display: grid;
+      gap: 10px;
+      width: min(85vw, 85vh);
+      height: min(85vw, 85vh);
+      margin: auto;
+      margin-top: 3vh;
+      font-family: sans-serif;
+    }
+
+    .block {
+      background-color: rgb(245 208 254);
+      user-select: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html {
+        background-color: #1b1b1b;
+        color: #fafafa;
+      }
+
+      .block {
+        background-color: rgb(134 25 143);
+      }
+    }
+
+    .clicked {
+      background-color: grey;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="play"></div>
+    <div id="options">Change row/col to
+      <input id="inpWidth" type="number" value="5" />
+      <button id="btnChange">OK</button>
+    </div>
+  </div>
+  <script>
+    // const
+    const divPlay = document.querySelector("#play");
+
+    // options
+    let width = 5;
+
+    // state
+    let nextValue = 1;
+    let startTime = null;
+
+    // code
+    function randomize() {
+      const list = [];
+      for (let i = 1; i <= width * width; i++) {
+        list.push([i, Math.random()]);
+      }
+      return list.sort((a, b) => a[1] - b[1]).map((x) => x[0]);
+    }
+
+    function handleClick(event) {
+      if (startTime === null) {
+        startTime = performance.now();
+      }
+      const e = event.target;
+      const value = Number(e.getAttribute("data-v"));
+      if (isNaN(value)) return;
+      if (value < nextValue) {
+        return;
+      }
+      if (value > nextValue) {
+        alert(`Bad! You should click ${nextValue}, not ${value}!`);
+        // init();
+        return;
+      }
+      nextValue += 1;
+      if (nextValue > width * width) {
+        const endTime = performance.now()
+        alert(`Success! Time: ${((endTime - startTime) / 1000).toFixed(3)}s`);
+      }
+      e.classList.add("clicked");
+    }
+
+    function resetState() {
+      nextValue = 1;
+      startTime = null;
+      divPlay.innerHTML = "";
+    }
+
+    function init() {
+      resetState();
+      divPlay.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+      divPlay.style.gridTemplateRows = `repeat(${width}, 1fr)`;
+      const items = randomize();
+      for (const i of items) {
+        const e = document.createElement("div");
+        e.innerHTML = `<div style="pointer-events: none">${i}</div>`;
+        e.setAttribute("data-v", i);
+        e.addEventListener("click", handleClick);
+        e.classList.add("block");
+        e.setAttribute("tabindex", 0)
+        divPlay.appendChild(e);
+      }
+    }
+
+    init();
+    document.querySelector('#btnChange').addEventListener('click', () => {
+      const w = Number(document.querySelector('#inpWidth').value);
+      width = w;
+      init();
+    })
+  </script>
+</body>
